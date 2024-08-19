@@ -81,6 +81,10 @@ public class CacheRegistry<K, V> implements CacheContainerRegistry<K, V> {
 		this.closeTask = closeTask;
 		this.executor = config.getExecutor();
 		this.entry = entry;
+	}
+
+	@Override
+	public void start() {
 		Address localAddress = this.cache.getCacheManager().getAddress();
 		try (Batch batch = this.batchFactory.get()) {
 			this.cache.put(localAddress, this.entry);
@@ -91,7 +95,7 @@ public class CacheRegistry<K, V> implements CacheContainerRegistry<K, V> {
 	}
 
 	@Override
-	public void close() {
+	public void stop() {
 		if (!this.group.isSingleton()) {
 			this.cache.removeListener(this);
 		}
@@ -101,14 +105,17 @@ public class CacheRegistry<K, V> implements CacheContainerRegistry<K, V> {
 			this.cache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES, Flag.FAIL_SILENTLY).remove(localAddress);
 		} catch (CacheException e) {
 			LOGGER.warn(e.getLocalizedMessage(), e);
-		} finally {
-			// Cleanup any unregistered listeners
-			for (ExecutorService executor : this.listeners.values()) {
-				this.shutdown(executor);
-			}
-			this.listeners.clear();
-			this.closeTask.run();
 		}
+	}
+
+	@Override
+	public void close() {
+		// Cleanup any unregistered listeners
+		for (ExecutorService executor : this.listeners.values()) {
+			this.shutdown(executor);
+		}
+		this.listeners.clear();
+		this.closeTask.run();
 	}
 
 	@Override

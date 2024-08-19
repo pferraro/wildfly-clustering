@@ -33,6 +33,7 @@ import org.wildfly.clustering.server.jgroups.ChannelGroup;
 import org.wildfly.clustering.server.jgroups.ChannelGroupMember;
 import org.wildfly.clustering.server.jgroups.JChannelGroup;
 import org.wildfly.clustering.server.util.BlockingExecutor;
+import org.wildfly.clustering.server.util.CloseableBlockingExecutor;
 import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.common.function.Functions;
 
@@ -47,7 +48,7 @@ public class JChannelCommandDispatcherFactory implements ChannelCommandDispatche
 
 	private final JChannelGroup group;
 	private final Map<Object, CommandDispatcherContext<?, ?>> contexts = new ConcurrentHashMap<>();
-	private final BlockingExecutor executor = BlockingExecutor.newInstance(this);
+	private final CloseableBlockingExecutor executor = CloseableBlockingExecutor.newInstance(this);
 	private final ByteBufferMarshaller marshaller;
 	private final MessageDispatcher dispatcher;
 	private final Duration timeout;

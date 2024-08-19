@@ -7,13 +7,14 @@ package org.wildfly.clustering.server.infinispan.provider;
 
 import org.wildfly.clustering.server.infinispan.CacheContainerGroup;
 import org.wildfly.clustering.server.infinispan.CacheContainerGroupMember;
+import org.wildfly.clustering.server.manager.Service;
 import org.wildfly.clustering.server.provider.ServiceProviderRegistrar;
 
 /**
  * @author Paul Ferraro
  * @param <T> the service type
  */
-public interface CacheContainerServiceProviderRegistrar<T> extends ServiceProviderRegistrar<T, CacheContainerGroupMember> {
+public interface CacheContainerServiceProviderRegistrar<T> extends ServiceProviderRegistrar<T, CacheContainerGroupMember>, Service {
 
 	@Override
 	CacheContainerGroup getGroup();

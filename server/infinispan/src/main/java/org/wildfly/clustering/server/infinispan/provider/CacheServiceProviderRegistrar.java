@@ -69,12 +69,20 @@ public class CacheServiceProviderRegistrar<T> implements CacheContainerServicePr
 		this.cache = config.getWriteOnlyCache();
 		this.batchFactory = config.getBatchFactory();
 		this.executor = config.getExecutor();
+	}
+
+	@Override
+	public void start() {
 		this.cache.addListener(this);
 	}
 
 	@Override
-	public void close() {
+	public void stop() {
 		this.cache.removeListener(this);
+	}
+
+	@Override
+	public void close() {
 		// Cleanup any unclosed registrations
 		for (T service : this.listeners.keySet()) {
 			this.unregisterLocal(service);
