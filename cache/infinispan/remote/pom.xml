@@ -23,10 +23,19 @@
 			<artifactId>jakarta.transaction-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.kohsuke.metainf-services</groupId>
+			<artifactId>metainf-services</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>wildfly-clustering-cache-infinispan-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>wildfly-clustering-marshalling-protostream</artifactId>
 		</dependency>
 
 		<dependency>
@@ -44,6 +53,18 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>wildfly-clustering-cache-spi</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>wildfly-clustering-marshalling-protostream</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>wildfly-clustering-marshalling-spi</artifactId>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
