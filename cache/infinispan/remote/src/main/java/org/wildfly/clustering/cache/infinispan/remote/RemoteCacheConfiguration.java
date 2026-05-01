@@ -18,7 +18,6 @@ import org.infinispan.client.hotrod.Flag;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheContainer;
 import org.infinispan.client.hotrod.configuration.NearCacheMode;
-import org.infinispan.client.hotrod.impl.InternalRemoteCache;
 import org.infinispan.commons.IllegalLifecycleStateException;
 import org.wildfly.clustering.cache.CacheEntryMutatorFactory;
 import org.wildfly.clustering.cache.CacheProperties;
@@ -126,7 +125,7 @@ public interface RemoteCacheConfiguration extends RemoteCacheContainerConfigurat
 	 */
 	default <K, V> RemoteCache<K, V> getReadForUpdateCache() {
 		RemoteCache<K, V> cache = this.getCache();
-		return this.getCacheProperties().isLockOnRead() && (cache instanceof InternalRemoteCache<K, V> internalCache) ? new ReadForUpdateRemoteCache<>(internalCache) : cache;
+		return this.getCacheProperties().isLockOnRead() ? new ReadForUpdateRemoteCache<>(cache) : cache;
 	}
 
 	/**

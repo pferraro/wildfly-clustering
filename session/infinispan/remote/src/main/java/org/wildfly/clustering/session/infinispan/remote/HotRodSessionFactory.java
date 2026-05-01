@@ -84,36 +84,38 @@ public class HotRodSessionFactory<DC, AV, SC> extends CompositeSessionFactory<DC
 	 * @param event a cache entry expiration event
 	 */
 	@ClientCacheEntryExpired
-	public void expired(ClientCacheEntryExpiredEvent<SessionAccessMetaDataKey> event) {
-		RemoteCache<SessionCreationMetaDataKey, SessionCreationMetaDataEntry<SC>> creationMetaDataCache = this.creationMetaDataCache;
-		ImmutableSessionMetaDataFactory<SessionMetaDataEntry<SC>> metaDataFactory = this.metaDataFactory;
-		SessionAttributesFactory<DC, AV> attributesFactory = this.attributesFactory;
-		Consumer<ImmutableSession> expirationListener = this.expirationListener;
-		String id = event.getKey().getId();
-		Runnable task = new Runnable() {
-			@Override
-			public void run() {
-				SessionCreationMetaDataEntry<SC> creationMetaDataEntry = creationMetaDataCache.remove(new SessionCreationMetaDataKey(id));
-				if (creationMetaDataEntry != null) {
-					AV attributesValue = attributesFactory.findValue(id);
-					if (attributesValue != null) {
-						// Fabricate a reasonable SessionAccessMetaData
-						SessionAccessMetaDataEntry accessMetaData = new DefaultSessionAccessMetaDataEntry();
-						Duration lastAccess = Duration.ofSeconds(1);
-						Duration sinceCreation = Duration.between(creationMetaDataEntry.getCreationTime(), Instant.now()).minus(creationMetaDataEntry.getMaxIdle()).minus(lastAccess);
-						accessMetaData.setLastAccessDuration(sinceCreation, lastAccess);
+	public void expired(ClientCacheEntryExpiredEvent<?> event) {
+		if (event.getKey() instanceof SessionAccessMetaDataKey key) {
+			RemoteCache<SessionCreationMetaDataKey, SessionCreationMetaDataEntry<SC>> creationMetaDataCache = this.creationMetaDataCache;
+			ImmutableSessionMetaDataFactory<SessionMetaDataEntry<SC>> metaDataFactory = this.metaDataFactory;
+			SessionAttributesFactory<DC, AV> attributesFactory = this.attributesFactory;
+			Consumer<ImmutableSession> expirationListener = this.expirationListener;
+			String id = key.getId();
+			Runnable task = new Runnable() {
+				@Override
+				public void run() {
+					SessionCreationMetaDataEntry<SC> creationMetaDataEntry = creationMetaDataCache.remove(new SessionCreationMetaDataKey(id));
+					if (creationMetaDataEntry != null) {
+						AV attributesValue = attributesFactory.findValue(id);
+						if (attributesValue != null) {
+							// Fabricate a reasonable SessionAccessMetaData
+							SessionAccessMetaDataEntry accessMetaData = new DefaultSessionAccessMetaDataEntry();
+							Duration lastAccess = Duration.ofSeconds(1);
+							Duration sinceCreation = Duration.between(creationMetaDataEntry.getCreationTime(), Instant.now()).minus(creationMetaDataEntry.getMaxIdle()).minus(lastAccess);
+							accessMetaData.setLastAccessDuration(sinceCreation, lastAccess);
 
-						// Notify session expiration listeners
-						ImmutableSessionMetaData metaData = metaDataFactory.createImmutableSessionMetaData(id, new DefaultSessionMetaDataEntry<>(creationMetaDataEntry, accessMetaData));
-						Map<String, Object> attributes = attributesFactory.createImmutableSessionAttributes(id, attributesValue);
-						ImmutableSession session = HotRodSessionFactory.this.createImmutableSession(id, metaData, attributes);
-						LOGGER.log(System.Logger.Level.TRACE, "Session {0} has expired.", id);
-						expirationListener.accept(session);
-						attributesFactory.remove(id);
+							// Notify session expiration listeners
+							ImmutableSessionMetaData metaData = metaDataFactory.createImmutableSessionMetaData(id, new DefaultSessionMetaDataEntry<>(creationMetaDataEntry, accessMetaData));
+							Map<String, Object> attributes = attributesFactory.createImmutableSessionAttributes(id, attributesValue);
+							ImmutableSession session = HotRodSessionFactory.this.createImmutableSession(id, metaData, attributes);
+							LOGGER.log(System.Logger.Level.TRACE, "Session {0} has expired.", id);
+							expirationListener.accept(session);
+							attributesFactory.remove(id);
+						}
 					}
 				}
-			}
-		};
-		this.executor.execute(task);
+			};
+			this.executor.execute(task);
+		}
 	}
 }
