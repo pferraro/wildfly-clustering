@@ -322,7 +322,7 @@ public abstract class AbstractSessionManagerITCase<P extends SessionManagerParam
 					}
 				}
 			}
-		} catch (RuntimeException e) {
+		} catch (RuntimeException | Error e) {
 			this.logger.log(System.Logger.Level.WARNING, e.getLocalizedMessage(), e);
 			throw e;
 		}
