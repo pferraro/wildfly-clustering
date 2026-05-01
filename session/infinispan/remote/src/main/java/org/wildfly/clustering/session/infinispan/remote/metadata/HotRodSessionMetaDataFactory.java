@@ -15,6 +15,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 import org.infinispan.client.hotrod.RemoteCache;
+import org.infinispan.commons.util.concurrent.CompletableFutures;
 import org.wildfly.clustering.cache.CacheEntryMutator;
 import org.wildfly.clustering.cache.CacheEntryMutatorFactory;
 import org.wildfly.clustering.cache.infinispan.remote.RemoteCacheConfiguration;
@@ -84,7 +85,7 @@ public class HotRodSessionMetaDataFactory<C> implements SessionMetaDataFactory<S
 	public CompletionStage<SessionMetaDataEntry<C>> findValueAsync(String id) {
 		SessionCreationMetaDataKey creationMetaDataKey = new SessionCreationMetaDataKey(id);
 		SessionAccessMetaDataKey accessMetaDataKey = new SessionAccessMetaDataKey(id);
-		return this.readCreationMetaDataCache.getAsync(creationMetaDataKey).thenCombine(this.readAccessMetaDataCache.getAsync(accessMetaDataKey), this);
+		return this.readCreationMetaDataCache.getAsync(creationMetaDataKey).thenCompose(creationMetaDataEntry -> (creationMetaDataEntry != null) ? this.readAccessMetaDataCache.getAsync(accessMetaDataKey).thenApply(accessMetaDataEntry -> this.apply(creationMetaDataEntry, accessMetaDataEntry)) : CompletableFutures.completedNull());
 	}
 
 	@Override

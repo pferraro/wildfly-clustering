@@ -42,7 +42,7 @@ public class HotRodUserContextFactory<PC, PV, TC> implements UserContextFactory<
 	 * @param contextFactory the user context factory
 	 */
 	public HotRodUserContextFactory(RemoteCacheConfiguration configuration, Marshaller<PC, PV> marshaller, Supplier<TC> contextFactory) {
-		this.readCache = configuration.getCache();
+		this.readCache = configuration.getReadForUpdateCache();
 		this.writeCache = configuration.getIgnoreReturnCache();
 		this.marshaller = marshaller;
 		this.contextFactory = contextFactory;
