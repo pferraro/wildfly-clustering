@@ -32,10 +32,7 @@ public class CacheKey<I> implements Key<I> {
 
 	@Override
 	public boolean equals(Object object) {
-		if ((object == null) || (object.getClass() != this.getClass())) return false;
-		@SuppressWarnings("unchecked")
-		CacheKey<I> key = (CacheKey<I>) object;
-		return this.id.equals(key.id);
+		return this.getClass().isInstance(object) ? this.id.equals(this.getClass().cast(object).getId()) : false;
 	}
 
 	@Override
