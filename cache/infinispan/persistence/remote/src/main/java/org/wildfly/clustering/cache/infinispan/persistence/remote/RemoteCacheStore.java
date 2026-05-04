@@ -23,10 +23,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import jakarta.transaction.Transaction;
-
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.CompletableTransformer;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -52,11 +49,7 @@ import org.infinispan.persistence.spi.MarshalledValue;
 import org.infinispan.persistence.spi.NonBlockingStore;
 import org.infinispan.util.concurrent.BlockingManager;
 import org.reactivestreams.Publisher;
-import org.wildfly.clustering.cache.infinispan.remote.ReadForUpdateRemoteCache;
-import org.wildfly.clustering.cache.infinispan.transaction.TransactionContextFactory;
-import org.wildfly.clustering.context.Context;
 import org.wildfly.clustering.function.Consumer;
-import org.wildfly.clustering.function.UnaryOperator;
 
 /**
  * Alternative to org.infinispan.persistence.remote.RemoteStore configured with a provided {@link RemoteCacheContainer} instance.
@@ -89,8 +82,6 @@ public class RemoteCacheStore<K, V> implements NonBlockingStore<K, V> {
 	private volatile int batchSize;
 	private volatile String cacheName;
 	private volatile int segments;
-	private volatile UnaryOperator<RemoteCache<K, MarshalledValue>> cacheTransformer;
-	private volatile TransactionContextFactory contextFactory;
 
 	/**
 	 * Creates a remote cache store.
@@ -101,7 +92,7 @@ public class RemoteCacheStore<K, V> implements NonBlockingStore<K, V> {
 	@Override
 	public Set<Characteristic> characteristics() {
 		// N.B. we must return a new, mutable instance, since this value may be modified by PersistenceManagerImpl
-		return EnumSet.of(Characteristic.BULK_READ, Characteristic.EXPIRATION, Characteristic.SEGMENTABLE, Characteristic.SHAREABLE, Characteristic.TRANSACTIONAL);
+		return EnumSet.of(Characteristic.BULK_READ, Characteristic.EXPIRATION, Characteristic.SEGMENTABLE, Characteristic.SHAREABLE);
 	}
 
 	@Override
@@ -114,7 +105,6 @@ public class RemoteCacheStore<K, V> implements NonBlockingStore<K, V> {
 		Cache<K, V> cache = context.getCache();
 		this.container = configuration.container();
 		this.cacheName = cache.getName();
-		this.contextFactory = TransactionContextFactory.of(cache.getAdvancedCache().getTransactionManager());
 		this.blockingManager = context.getBlockingManager();
 		this.executor = context.getNonBlockingExecutor();
 		this.batchSize = configuration.maxBatchSize();
@@ -129,12 +119,11 @@ public class RemoteCacheStore<K, V> implements NonBlockingStore<K, V> {
 			MarshalledValue value = entry.getValue().getValue();
 			return this.entryFactory.create(entry.getKey(), value.getValueBytes(), value.getMetadataBytes(), value.getInternalMetadataBytes(), value.getCreated(), value.getLastUsed());
 		};
-		this.cacheTransformer = configuration.transactional() ? decorated -> new ReadForUpdateRemoteCache<>(this.container, decorated) : UnaryOperator.identity();
 		// Do not segment if a non-segmented remote cache exists
 		this.segments = configuration.segmented() && !this.container.getCacheNames().contains(this.cacheName) && (cache.getAdvancedCache().getDistributionManager() != null) ? cache.getCacheConfiguration().clustering().hash().numSegments() : 1;
 		this.caches = new AtomicReferenceArray<>(this.segments);
 		for (int i = 0; i < this.segments; ++i) {
-			this.container.getConfiguration().addRemoteCache(this.segmentCacheName(i), configuration.andThen(builder -> builder.marshaller(this.marshaller.getUserMarshaller()).transactionManagerLookup(cache.getAdvancedCache()::getTransactionManager)));
+			this.container.getConfiguration().addRemoteCache(this.segmentCacheName(i), configuration.andThen(builder -> builder.marshaller(this.marshaller.getUserMarshaller())));
 		}
 		// When segmented and unshared, add/removeSegments(...) will be triggered as needed.
 		return !configuration.segmented() || configuration.shared() ? this.addSegments(IntSets.immutableRangeSet(this.segments)) : CompletableFutures.completedNull();
@@ -377,7 +366,7 @@ public class RemoteCacheStore<K, V> implements NonBlockingStore<K, V> {
 			this.blockingManager.runBlocking(() -> {
 				RemoteCache<K, MarshalledValue> cache = this.container.getCache(cacheName);
 				cache.start();
-				this.caches.set(index, this.cacheTransformer.apply(cache.withDataFormat(this.format)));
+				this.caches.set(index, cache.withDataFormat(this.format));
 			}, "hotrod-store-add-segments").whenComplete((value, e) -> {
 				if (e != null) {
 					result.completeExceptionally(e);
@@ -418,27 +407,5 @@ public class RemoteCacheStore<K, V> implements NonBlockingStore<K, V> {
 	@Override
 	public Publisher<MarshallableEntry<K, V>> purgeExpired() {
 		return Flowable.empty();
-	}
-
-	@Override
-	public CompletionStage<Void> prepareWithModifications(Transaction transaction, int publisherCount, Publisher<SegmentedPublisher<Object>> removePublisher, Publisher<SegmentedPublisher<MarshallableEntry<K, V>>> writePublisher) {
-		try (Context<Transaction> suspended = this.contextFactory.suspendWithContext()) {
-			CompletableTransformer batcher = upstream -> observer -> {
-				try (Context<Transaction> resumed = this.contextFactory.suspendWithContext()) {
-					upstream.subscribe(observer);
-				}
-			};
-			return this.completableBatch(publisherCount, removePublisher, writePublisher).compose(batcher).toCompletionStage(null);
-		}
-	}
-
-	@Override
-	public CompletionStage<Void> commit(Transaction transaction) {
-		return CompletableFutures.completedNull();
-	}
-
-	@Override
-	public CompletionStage<Void> rollback(Transaction transaction) {
-		return CompletableFutures.completedNull();
 	}
 }

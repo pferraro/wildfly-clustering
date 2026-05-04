@@ -104,7 +104,7 @@ public class RemoteStoreSessionManagerITCase extends AbstractSessionManagerITCas
 """)
 										.segmented(true)
 										.shared(true)
-										.transactional(mode.isTransactional())
+										.transactional(false)
 										;
 								return container::close;
 							}
