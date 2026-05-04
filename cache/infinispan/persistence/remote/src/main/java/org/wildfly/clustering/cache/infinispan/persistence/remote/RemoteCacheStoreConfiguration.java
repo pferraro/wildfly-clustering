@@ -89,10 +89,9 @@ public class RemoteCacheStoreConfiguration extends AbstractStoreConfiguration<Re
 
 	@Override
 	public void accept(RemoteCacheConfigurationBuilder builder) {
-		boolean transactional = this.attributes.attribute(TRANSACTIONAL).get();
 		builder.forceReturnValues(false)
 				.nearCacheMode(NearCacheMode.DISABLED)
-				.transactionMode(transactional ? TransactionMode.NON_DURABLE_XA : TransactionMode.NONE)
+				.transactionMode(TransactionMode.NONE)
 				;
 		String template = this.attributes.attribute(TEMPLATE).get();
 		if (template != null) {
