@@ -61,7 +61,7 @@ public class ReadForUpdateRemoteCache<K, V> extends RemoteCacheDecorator<K, V> {
 
 	@SuppressWarnings("unchecked")
 	ReadForUpdateRemoteCache(InternalRemoteCache<K, V> cache) {
-		super(cache, ReadForUpdateRemoteCache::new);
+		super(cache.getRemoteCacheContainer(), cache, ReadForUpdateRemoteCache::new);
 		TransactionContextFactory contextFactory = TransactionContextFactory.of(cache.getTransactionManager());
 		RemoteCache<TransactionKey<K>, Xid> putCache = (RemoteCache<TransactionKey<K>, Xid>) cache.withFlags(Flag.FORCE_RETURN_VALUE, Flag.SKIP_LISTENER_NOTIFICATION, Flag.SKIP_CACHE_LOAD);
 		RemoteCache<TransactionKey<K>, Xid> removeCache = (RemoteCache<TransactionKey<K>, Xid>) cache.withFlags(Flag.SKIP_LISTENER_NOTIFICATION, Flag.SKIP_CACHE_LOAD);
