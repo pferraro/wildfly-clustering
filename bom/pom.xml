@@ -37,6 +37,11 @@
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
+				<artifactId>wildfly-clustering-cache-infinispan-container</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
 				<artifactId>wildfly-clustering-cache-infinispan-embedded</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -58,6 +63,11 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>wildfly-clustering-cache-spi</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>wildfly-clustering-container</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

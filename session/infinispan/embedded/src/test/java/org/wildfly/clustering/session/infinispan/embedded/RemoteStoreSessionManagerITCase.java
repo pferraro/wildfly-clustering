@@ -22,8 +22,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.wildfly.clustering.cache.infinispan.container.InfinispanServerExtension;
 import org.wildfly.clustering.cache.infinispan.persistence.remote.RemoteCacheStoreConfigurationBuilder;
-import org.wildfly.clustering.cache.infinispan.remote.InfinispanServerExtension;
 import org.wildfly.clustering.marshalling.ByteBufferMarshaller;
 import org.wildfly.clustering.marshalling.MarshallingTesterFactory;
 import org.wildfly.clustering.session.SessionAttributePersistenceStrategy;
@@ -73,7 +73,7 @@ public class RemoteStoreSessionManagerITCase extends AbstractSessionManagerITCas
 
 							@Override
 							public Runnable persistence(GlobalConfiguration global, PersistenceConfigurationBuilder builder) {
-								org.infinispan.client.hotrod.configuration.Configuration configuration = INFINISPAN.getContainer().get().toConfigurationBuilder().marshaller(global.serialization().marshaller()).build();
+								org.infinispan.client.hotrod.configuration.Configuration configuration = INFINISPAN.getURI().toConfigurationBuilder().marshaller(global.serialization().marshaller()).build();
 								RemoteCacheManager container = new RemoteCacheManager(configuration);
 
 								builder.persistence().addStore(RemoteCacheStoreConfigurationBuilder.class)

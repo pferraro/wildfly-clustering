@@ -23,6 +23,7 @@
 
 	<modules>
 		<module>common</module>
+		<module>container</module>
 		<module>embedded</module>
 		<module>persistence</module>
 		<module>remote</module>

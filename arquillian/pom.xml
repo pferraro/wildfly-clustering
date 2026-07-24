@@ -19,6 +19,10 @@
 
 	<properties>
 		<project.module.name>org.wildfly.clustering.arquillian</project.module.name>
+		<tomcat.http.port>8080</tomcat.http.port>
+		<tomcat.jmx.port>8089</tomcat.jmx.port>
+		<tomcat.admin.username>admin</tomcat.admin.username>
+		<tomcat.admin.password>admin</tomcat.admin.password>
 	</properties>
 
 	<dependencies>
@@ -29,12 +33,48 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.wildfly.clustering</groupId>
+			<artifactId>wildfly-clustering-container</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.jboss.arquillian.container</groupId>
 			<artifactId>arquillian-container-spi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-container-impl-base</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.arquillian.test</groupId>
 			<artifactId>arquillian-test-spi</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-tomcat-remote-10</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.junit5</groupId>
+			<artifactId>arquillian-junit5-container</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-suite-api</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
+	<build>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**</include>
+				</includes>
+			</testResource>
+		</testResources>
+	</build>
 </project>
